@@ -149,6 +149,14 @@ NestJS with standard module structure. Source lives in `src/`, compiled output i
 - Each domain feature gets its own module (e.g., `UsersModule`, `VideosModule`) registered in `AppModule`
 - Controllers handle HTTP routing; Services hold business logic; both are scoped to their module
 
+## Vídeos — Fase 03
+
+- `src/videos/` contém o controller, os serviços de domínio/storage, a entidade `Video`, o processador BullMQ e o parser de `Range`. A migration `CreateVideos1790704980989` cria a tabela e a FK para `channels`.
+- A API cria rascunho e upload multipart com `POST /videos`; assina partes com `POST /videos/:publicId/upload/parts`; conclui e enfileira `video.process` com `POST /videos/:publicId/upload/complete`; aborta com `DELETE /videos/:publicId/upload`. O cliente envia cada parte diretamente ao storage pela URL assinada. Tamanho máximo: 10 GiB, 160 partes de 64 MiB.
+- `GET /videos/:publicId` usa autenticação opcional: vídeo pronto é público, demais estados exigem o dono. `GET /videos/:publicId/stream` e `/download` transmitem bytes com suporte a `Range` (200, 206, 416); `/thumbnail` entrega JPEG quando o estado é `ready`.
+- O serviço `video-worker` do Compose executa `src/video-worker.ts` em container separado com FFmpeg/ffprobe. Consome BullMQ/Redis, extrai metadados e thumbnail, e muda `draft → processing → ready/error`. O storage S3 privado roda no serviço `minio` usando Silo, fork compatível do MinIO, porque a imagem comunitária oficial não está disponível para download neste ambiente.
+- Testes da fase: `src/videos/**/*.spec.ts`, `src/videos/**/*.integration-spec.ts` e `test/videos.e2e-spec.ts`. Os testes E2E usam Redis, storage e worker reais; execute `npm test` e `npm run test:e2e` em sequência, dentro de `nestjs-api`, pois compartilham o banco.
+
 ## Code Conventions
 
 - **TypeScript:** `nodenext` module resolution, `ES2023` target, `strictNullChecks` on, `noImplicitAny` off

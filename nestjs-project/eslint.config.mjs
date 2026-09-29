@@ -32,4 +32,16 @@ export default tseslint.config(
       "prettier/prettier": ["error", { endOfLine: "auto" }],
     },
   },
+  {
+    // Supertest e mocks do Jest expõem `any`; manter as regras tipadas no código de produção.
+    files: ['**/*.spec.ts', '**/*.integration-spec.ts', '**/*.e2e-spec.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
 );

@@ -438,6 +438,510 @@
           "auth"
         ]
       }
+    },
+    "/videos": {
+      "post": {
+        "description": "Cria rascunho e upload multipart; arquivo vai direto ao storage.",
+        "operationId": "VideosController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVideoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rascunho e upload criados"
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem autenticação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage indisponível",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Iniciar upload de vídeo",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{publicId}/upload/parts": {
+      "post": {
+        "description": "Devolve URL PUT temporária para envio direto ao storage.",
+        "operationId": "VideosController_signPart",
+        "parameters": [
+          {
+            "name": "publicId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignPartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "URL de parte criada"
+          },
+          "400": {
+            "description": "Parte inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem autenticação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outro canal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vídeo desconhecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Estado inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Assinar parte do upload",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{publicId}/upload/complete": {
+      "post": {
+        "description": "Verifica as partes no S3 e agenda o processamento.",
+        "operationId": "VideosController_complete",
+        "parameters": [
+          {
+            "name": "publicId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Processamento agendado"
+          },
+          "400": {
+            "description": "Partes inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sem autenticação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outro canal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vídeo desconhecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Estado inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Serviço indisponível",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Concluir upload",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{publicId}/upload": {
+      "delete": {
+        "description": "Descarta upload multipart e rascunho.",
+        "operationId": "VideosController_abort",
+        "parameters": [
+          {
+            "name": "publicId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Upload abortado"
+          },
+          "401": {
+            "description": "Sem autenticação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outro canal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vídeo desconhecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Estado inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Abortar upload",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{publicId}": {
+      "get": {
+        "description": "Vídeo pronto é público; demais estados exigem o dono.",
+        "operationId": "VideosController_metadata",
+        "parameters": [
+          {
+            "name": "publicId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadados do vídeo"
+          },
+          "401": {
+            "description": "Sem autenticação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outro canal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vídeo desconhecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Consultar vídeo",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{publicId}/stream": {
+      "get": {
+        "description": "Transmite bytes do original com suporte a Range/206.",
+        "operationId": "VideosController_stream",
+        "parameters": [
+          {
+            "name": "publicId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vídeo completo"
+          },
+          "206": {
+            "description": "Intervalo parcial"
+          },
+          "404": {
+            "description": "Mídia indisponível",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Range inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Reproduzir vídeo",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{publicId}/download": {
+      "get": {
+        "description": "Transmite o original como anexo, sem buffer integral.",
+        "operationId": "VideosController_download",
+        "parameters": [
+          {
+            "name": "publicId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo completo"
+          },
+          "206": {
+            "description": "Intervalo parcial"
+          },
+          "404": {
+            "description": "Mídia indisponível",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Range inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Baixar vídeo",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{publicId}/thumbnail": {
+      "get": {
+        "description": "Transmite o JPEG gerado pelo worker.",
+        "operationId": "VideosController_thumbnail",
+        "parameters": [
+          {
+            "name": "publicId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Imagem JPEG"
+          },
+          "404": {
+            "description": "Imagem indisponível",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obter thumbnail",
+        "tags": [
+          "videos"
+        ]
+      }
     }
   },
   "info": {
@@ -478,6 +982,14 @@
         "properties": {}
       },
       "ResetPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateVideoDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SignPartDto": {
         "type": "object",
         "properties": {}
       },

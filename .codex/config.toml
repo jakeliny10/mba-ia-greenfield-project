@@ -1,0 +1,7 @@
+# Conexões equivalentes às do projeto Claude Code. Segredos ficam fora do Git.
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp/oauth"
+
+[mcp_servers.postgres]
+command = "sh"
+args = ["-c", "test -n \"$DATABASE_URL\" || { echo 'Defina DATABASE_URL para o MCP PostgreSQL' >&2; exit 1; }; exec npx -y @modelcontextprotocol/server-postgres \"$DATABASE_URL\""]

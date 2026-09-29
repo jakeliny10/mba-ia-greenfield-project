@@ -45,9 +45,9 @@ O projeto é um monorepo baseado em containers Docker. Cada subprojeto sobe sua 
 - **API** (NestJS 11) — regras de negócio, autenticação (JWT + refresh token rotation), envio de e-mails e acesso ao banco.
 - **Database** (PostgreSQL 17) — usuários, canais e tokens de autenticação.
 - **Email Service** (Mailpit) — captura os e-mails transacionais (confirmação de conta e recuperação de senha) em uma UI local.
-- **Video Worker** (FFmpeg) — processamento de vídeos *(planejado — Fase 03)*.
-- **Object Storage** (S3/MinIO) — arquivos de vídeo e thumbnails *(planejado — Fase 03)*.
-- **Message Queue** — fila de processamento de vídeos *(planejado — Fase 03)*.
+- **Video Worker** (FFmpeg/ffprobe) — processamento assíncrono de vídeos em container separado.
+- **Object Storage** (Silo, fork compatível do MinIO/S3) — originais e thumbnails em bucket privado.
+- **Message Queue** (BullMQ/Redis) — fila persistente de processamento de vídeos.
 
 O diagrama de arquitetura completo (C4) está em `docs/diagrams/software-arch.mermaid`.
 
@@ -60,7 +60,7 @@ Os dois subprojetos têm stacks Docker **separadas**. Suba primeiro o backend, r
 ```bash
 cd nestjs-project
 
-# Sobe API, banco e Mailpit
+# Sobe API, banco, Mailpit, Redis, storage e worker
 docker compose up -d
 
 # Instala dependências (apenas na primeira vez)
@@ -78,8 +78,10 @@ Serviços disponíveis:
 | Serviço | URL / Porta |
 |---------|-------------|
 | API NestJS | http://localhost:3000 |
-| PostgreSQL | `localhost:5432` (db/user/senha: `streamtube`) |
+| PostgreSQL | `localhost:5434` no host; `db:5432` no Compose (db/user/senha: `streamtube`) |
 | Mailpit (UI de e-mails) | http://localhost:8025 |
+| Storage S3 (Silo/MinIO compatível) | http://localhost:9000 |
+| Console do storage | http://localhost:9001 |
 | Swagger (opcional) | http://localhost:3000/api/docs — habilite com `SWAGGER_ENABLED=true` |
 
 ### 2. Frontend (Next.js)
@@ -124,7 +126,13 @@ Sufixos: `*.test.ts(x)` (unitário), `*.integration.test.ts(x)` (Route Handlers 
 
 ## ✅ Funcionalidades implementadas
 
-**Fase 01 — Configuração base** e **Fase 02 — Autenticação** estão concluídas (backend + frontend).
+**Fase 01 — Configuração base**, **Fase 02 — Autenticação** (backend + frontend) e **Fase 03 — Vídeos** (backend) estão implementadas.
+
+### Vídeos (Fase 03)
+
+`POST /videos` cria um rascunho e inicia upload multipart de até 10 GiB. O cliente pede URLs com `POST /videos/:publicId/upload/parts`, envia cada parte diretamente ao storage e conclui com `POST /videos/:publicId/upload/complete`. O worker processa o vídeo, extrai duração e metadados e gera um thumbnail. `GET /videos/:publicId` consulta metadados; `/stream` e `/download` transmitem o original com suporte a `Range`; `/thumbnail` retorna o JPEG. `DELETE /videos/:publicId/upload` aborta um rascunho.
+
+Decisões, plano e evidências de implementação: `docs/decisions/technical-decisions-phase-03-videos.md` e `docs/phases/phase-03-videos/`. O Compose usa Silo, fork comunitário do MinIO com a mesma API S3, porque a imagem comunitária oficial do MinIO deixou de estar disponível para download neste ambiente.
 
 ### Autenticação (Fase 02)
 
@@ -195,7 +203,7 @@ green-field-ia-project/
 |------|-----------|--------|
 | **01** | Configuração Base do Projeto | ✅ Concluída |
 | **02** | Cadastro, Login e Gerenciamento de Conta | ✅ Concluída |
-| **03** | Upload e Processamento de Vídeos | ⏳ Planejada |
+| **03** | Upload e Processamento de Vídeos | ✅ Implementada no backend |
 | **04** | Gerenciamento de Vídeos e Canal | ⏳ Planejada |
 | **05** | Página de Visualização do Vídeo | ⏳ Planejada |
 | **06** | Interações Sociais (Likes, Comentários, Inscrições) | ⏳ Planejada |

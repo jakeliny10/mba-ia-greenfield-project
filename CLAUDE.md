@@ -10,20 +10,26 @@ More info in the project overview: [docs/project-plan.md](docs/project-plan.md)
 
 This is a monorepo with two main areas:
 
-- `nestjs-project/` — Backend API (NestJS 11, TypeScript, Express). Contains modules for users, channels, videos, comments, etc.
+- `nestjs-project/` — Backend API (NestJS 11, TypeScript, Express). Contém autenticação, usuários, canais e vídeos.
 - `docs/` — Project documentation, architecture diagrams, and planning.
-- `next-frontend/` (Next.js) — not yet initialized
+- `next-frontend/` — frontend Next.js com as Fases 01 e 02; interface de vídeo fora do escopo da Fase 03.
 
 ## Architecture (C4 Container Diagram)
 
 See `docs/diagrams/software-arch.mermaid` for the full diagram. Key containers:
 
-- **Frontend** (Next.js) → calls API via REST, streams from Object Storage
-- **API** (Nest.js) → business rules, auth, reads/writes DB, uploads to storage, publishes jobs to queue, sends emails
-- **Video Worker** (FFmpeg) → consumes jobs from queue, processes videos, updates DB and storage
+- **Frontend** (Next.js) → usa Route Handlers BFF para autenticação; interface de vídeo ainda não implementada
+- **API** (Nest.js) → regras de negócio, autenticação, banco, URLs de upload multipart, publicação de jobs, streaming e e-mail
+- **Video Worker** (FFmpeg) → consome jobs da fila, extrai metadados, gera thumbnail e atualiza o banco
 - **Database** (PostgreSQL) → users, channels, videos, comments, likes
-- **Object Storage** (S3/MinIO) → video files and thumbnails
-- **Message Queue** (TBD) → video processing job queue
+- **Object Storage** (Silo, fork compatível do MinIO/S3) → originais e thumbnails em bucket privado
+- **Message Queue** (BullMQ/Redis) → jobs de processamento de vídeo
+
+## Fase 03 — Vídeos
+
+`VideosModule` expõe `POST /videos` para criar o rascunho e iniciar upload multipart, `POST /videos/:publicId/upload/parts` para assinar o PUT de cada parte, `POST /videos/:publicId/upload/complete` para validar o objeto e publicar `video.process`, e `DELETE /videos/:publicId/upload` para abortar. Os bytes do upload vão diretamente ao storage, sem passar pela API. O limite é 10 GiB em até 160 partes de 64 MiB.
+
+`GET /videos/:publicId` mostra metadados públicos quando o vídeo está pronto e exige o dono nos outros estados. `GET /videos/:publicId/stream` e `/download` transmitem o original com suporte a `Range`; `/thumbnail` transmite o JPEG gerado. O worker separado usa `ffprobe` e `ffmpeg` e muda o estado `draft → processing → ready/error`. A documentação e o progresso da fase ficam em `docs/phases/phase-03-videos/`.
 - **Email Service** (SMTP) → account confirmation and password recovery
 
 ## Docker Networking

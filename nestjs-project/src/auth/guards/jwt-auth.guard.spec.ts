@@ -52,6 +52,39 @@ describe('JwtAuthGuard', () => {
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 
+  it('allows an anonymous request on an optional-auth route', async () => {
+    mockReflector.getAllAndOverride.mockImplementation(
+      (key: string) => key === 'isOptionalAuth',
+    );
+    const request: Record<string, unknown> = { headers: {} };
+    await expect(guard.canActivate(makeContext(request))).resolves.toBe(true);
+    expect(request.user).toBeUndefined();
+  });
+
+  it('attaches a valid user on an optional-auth route', async () => {
+    mockReflector.getAllAndOverride.mockImplementation(
+      (key: string) => key === 'isOptionalAuth',
+    );
+    const token = jwtService.sign({ sub: 'user-1', email: 'a@example.com' });
+    const request: Record<string, unknown> = {
+      headers: { authorization: `Bearer ${token}` },
+    };
+    await expect(guard.canActivate(makeContext(request))).resolves.toBe(true);
+    expect((request.user as Record<string, unknown>)?.sub).toBe('user-1');
+  });
+
+  it('rejects an invalid token on an optional-auth route', async () => {
+    mockReflector.getAllAndOverride.mockImplementation(
+      (key: string) => key === 'isOptionalAuth',
+    );
+    const request = {
+      headers: { authorization: 'Bearer invalid-token' },
+    };
+    await expect(guard.canActivate(makeContext(request))).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
   it('passes with a valid JWT and attaches payload to request.user', async () => {
     const token = jwtService.sign({ sub: 'user-1', email: 'a@example.com' });
     const request: Record<string, unknown> = {
