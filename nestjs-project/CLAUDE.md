@@ -2,7 +2,7 @@
 
 ## Environment Startup Verification
 
-**Default behavior:** starting the environment means starting **only infrastructure services** (database, mail, etc.) — **never** start the NestJS application server unless the user explicitly asks to run/serve the project (e.g., "rode o projeto", "suba o servidor", "run the app").
+Para executar a Fase 03 completa, `docker compose up -d` inicia API, banco, Mailpit, Redis, storage e worker. Quando a tarefa pedir apenas infraestrutura, inicie somente os serviços necessários.
 
 After starting infrastructure, always confirm the containers are up before proceeding:
 
@@ -10,11 +10,11 @@ After starting infrastructure, always confirm the containers are up before proce
 docker compose ps   # all services must show status "running"
 ```
 
-Then verify each infrastructure service is actually ready to accept connections — not just running:
+Depois, confirme que os serviços necessários estão prontos para aceitar conexões:
 
 - **PostgreSQL:** `docker compose exec db pg_isready -U streamtube` — expect `accepting connections`
 
-Only start the NestJS dev server (`npm run start:dev`) when the user **explicitly** asks to run the application — never as part of "start the environment".
+O Compose já inicia o comando definido no `Dockerfile.dev`; `npm run start:dev` manual só é necessário quando a tarefa pedir execução em modo watch.
 
 ## Development Environment
 
@@ -34,6 +34,10 @@ docker compose exec nestjs-api npm run start:dev
 Services:
 - `nestjs-api` — NestJS API, port `3000`
 - `db` — PostgreSQL 17, port `5432`, database `streamtube`, user/password `streamtube`
+- `mailpit` — SMTP de desenvolvimento
+- `redis` — fila BullMQ
+- `minio` — storage S3 compatível (imagem Silo)
+- `video-worker` — processamento com FFmpeg/ffprobe
 
 All verification and teardown commands run on the **host machine**:
 

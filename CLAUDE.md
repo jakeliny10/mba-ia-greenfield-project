@@ -24,13 +24,13 @@ See `docs/diagrams/software-arch.mermaid` for the full diagram. Key containers:
 - **Database** (PostgreSQL) → users, channels, videos, comments, likes
 - **Object Storage** (Silo, fork compatível do MinIO/S3) → originais e thumbnails em bucket privado
 - **Message Queue** (BullMQ/Redis) → jobs de processamento de vídeo
+- **Email Service** (SMTP) → account confirmation and password recovery
 
 ## Fase 03 — Vídeos
 
 `VideosModule` expõe `POST /videos` para criar o rascunho e iniciar upload multipart, `POST /videos/:publicId/upload/parts` para assinar o PUT de cada parte, `POST /videos/:publicId/upload/complete` para validar o objeto e publicar `video.process`, e `DELETE /videos/:publicId/upload` para abortar. Os bytes do upload vão diretamente ao storage, sem passar pela API. O limite é 10 GiB em até 160 partes de 64 MiB.
 
 `GET /videos/:publicId` mostra metadados públicos quando o vídeo está pronto e exige o dono nos outros estados. `GET /videos/:publicId/stream` e `/download` transmitem o original com suporte a `Range`; `/thumbnail` transmite o JPEG gerado. O worker separado usa `ffprobe` e `ffmpeg` e muda o estado `draft → processing → ready/error`. A documentação e o progresso da fase ficam em `docs/phases/phase-03-videos/`.
-- **Email Service** (SMTP) → account confirmation and password recovery
 
 ## Docker Networking
 

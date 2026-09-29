@@ -121,7 +121,7 @@ Entregar upload direto multipart até 10 GiB, processamento fora da API, armazen
 | `GET /videos/:id/download` | pronto público | `Range?` | 200/206 bytes, `attachment` | 404, 416 |
 | `GET /videos/:id/thumbnail` | pronto público | — | 200 image/jpeg | 404 |
 
-Parâmetro `:id` é o `public_id`. Resposta de 416 envia `Content-Range: bytes */<size>`; Range múltiplo é rejeitado. CORS do MinIO permite PUT do origin configurado e expõe `ETag`; clientes guardam números e ETags para retomada.
+Parâmetro `:id` é o `public_id`. Resposta de 416 envia `Content-Range: bytes */<size>`; Range múltiplo é rejeitado. No Compose local, CORS do storage permite PUT de qualquer origem e expõe `ETag`; clientes guardam números e ETags para retomada.
 
 ### Authorization Matrix
 
