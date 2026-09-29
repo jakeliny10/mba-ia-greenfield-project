@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-StreamTube — a video sharing platform (YouTube-like). Users can upload, manage, and publish videos. Anonymous users can watch freely; social features (comments, subscriptions, likes) require authentication.
+StreamTube — plataforma de vídeos. A Fase 03 permite upload, processamento e reprodução de vídeos; publicação editorial e recursos sociais pertencem a fases futuras.
 
 More info in the project overview: [docs/project-plan.md](docs/project-plan.md)
 
@@ -21,7 +21,7 @@ See `docs/diagrams/software-arch.mermaid` for the full diagram. Key containers:
 - **Frontend** (Next.js) → usa Route Handlers BFF para autenticação; interface de vídeo ainda não implementada
 - **API** (Nest.js) → regras de negócio, autenticação, banco, URLs de upload multipart, publicação de jobs, streaming e e-mail
 - **Video Worker** (FFmpeg) → consome jobs da fila, extrai metadados, gera thumbnail e atualiza o banco
-- **Database** (PostgreSQL) → users, channels, videos, comments, likes
+- **Database** (PostgreSQL) → usuários, canais, tokens de autenticação e vídeos
 - **Object Storage** (Silo, fork compatível do MinIO/S3) → originais e thumbnails em bucket privado
 - **Message Queue** (BullMQ/Redis) → jobs de processamento de vídeo
 - **Email Service** (SMTP) → account confirmation and password recovery
