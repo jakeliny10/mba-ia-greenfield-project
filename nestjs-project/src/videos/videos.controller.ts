@@ -19,6 +19,7 @@ import {
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { pipeline } from 'node:stream/promises';
 import type { JwtPayload } from '../auth/auth.types';
@@ -66,6 +67,7 @@ export class VideosController {
   }
 
   @Post(':publicId/upload/parts')
+  @Throttle({ default: { limit: 240, ttl: 60_000 } })
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Assinar parte do upload',

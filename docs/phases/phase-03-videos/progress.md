@@ -20,7 +20,7 @@
 
 - **Status:** implementada.
 - **Evidência:** `POST /videos` cria rascunho; `POST /videos/:publicId/upload/parts` assina PUT direto ao storage; autorização por dono e limite de 10 GiB/160 partes.
-- **Testes:** `videos.e2e-spec.ts` envia o vídeo de teste pela URL assinada e verifica que o limite de 10 GiB aceita a parte 160 e rejeita a 161.
+- **Testes:** `videos.e2e-spec.ts` envia o vídeo de teste pela URL assinada e verifica que o limite de 10 GiB aceita a parte 160 e rejeita a 161. `npm run test:large-upload` enviou fisicamente 160 partes de 64 MiB (10 GiB) ao storage e confirmou o tamanho final no banco e no objeto; o teste limpa seus dados ao terminar.
 
 ### SI-03.4 — Conclusão e publicação na fila
 
@@ -44,7 +44,7 @@
 
 - **Status:** concluída.
 - **Evidência:** Swagger nos endpoints, README e instruções `CLAUDE.md`/`AGENTS.md` atualizados para a arquitetura real. Este arquivo registra testes por SI.
-- **Testes:** `npm test` 27/27 suítes e 167/167 testes; `npm run test:e2e` 4/4 suítes e 54/54 testes; `npx tsc --noEmit`, `npm run lint` e `git diff --check` com código 0. `docker compose ps` mostra `db`, `mailpit`, `minio`, `nestjs-api`, `redis` e `video-worker` ativos. `openapi.json` contém as oito rotas de vídeo.
+- **Testes:** `npm test` 27/27 suítes e 167/167 testes; `npm run test:e2e` 4/4 suítes e 54/54 testes; `npm run test:large-upload` 1/1 teste; `npx tsc --noEmit`, `npm run lint` e `git diff --check` com código 0. `docker compose ps` mostra `db`, `mailpit`, `minio`, `nestjs-api`, `redis` e `video-worker` ativos. `openapi.json` contém as oito rotas de vídeo.
 
 ## Revisão contra o enunciado
 
@@ -52,11 +52,11 @@
 |---|---|
 | Research e decisões justificadas | `docs/decisions/technical-decisions-phase-03-videos.md`, TD-01 a TD-07 |
 | Pipeline de planejamento e validação clean | `context.md`, `validation.md` com `status: clean`, `library-refs.md` e `phase-03-videos.md` com SIs, especificações, mapa e entregáveis |
-| Upload direto até 10 GiB e rascunho | API multipart, URL assinada PUT real no E2E; limite de 10 GiB/160 partes testado sem transferir fisicamente 10 GiB |
+| Upload direto até 10 GiB e rascunho | API multipart, URL assinada PUT real no E2E; teste manual transferiu 10 GiB em 160 partes e confirmou o tamanho final |
 | Processamento, metadados, thumbnail e estados | E2E com Redis, storage e worker reais; testes unitários de parser, idempotência e falha terminal |
 | URL única, streaming e download | `public_id` UUID com `UNIQUE`; E2E de bytes completos, `Range` 206/416, download e JPEG |
 | Infraestrutura e migration | Compose com storage, Redis e worker; teste de migration aplica/desfaz tabela; teste de entidade verifica FK e unicidade |
-| Qualidade | 167 testes unitários/de integração, 54 E2E, TypeScript e lint verdes |
+| Qualidade | 167 testes unitários/de integração, 54 E2E, 1 teste manual de 10 GiB, TypeScript e lint verdes |
 | Git Flow e ferramenta Codex | branch `feature/phase-03-videos` descendente de `dev`; `AGENTS.md`, `.agents/skills` e `.codex/config.toml` presentes |
 | Documentação atualizada | `CLAUDE.md`, `nestjs-project/CLAUDE.md`, `README.md` e `openapi.json` refletem a Fase 03 |
 

@@ -109,10 +109,13 @@ A aplicação ficará disponível em **http://localhost:3001**.
 cd nestjs-project
 docker compose exec nestjs-api npm test               # unitários + integração
 docker compose exec nestjs-api npm run test:e2e       # end-to-end (HTTP via supertest)
+docker compose exec nestjs-api npm run test:large-upload # teste manual: transfere 10 GiB ao storage
 docker compose exec nestjs-api npm run test:cov       # cobertura
 ```
 
 Sufixos: `*.spec.ts` (unitário), `*.integration-spec.ts` (integração com banco real), `*.e2e-spec.ts` (end-to-end). Testes de integração/e2e rodam com `--runInBand`.
+
+O teste manual de 10 GiB é separado da suíte padrão: consome aproximadamente 10 GiB de espaço temporário no storage e remove o objeto ao terminar.
 
 ### Frontend (Vitest + Playwright)
 
